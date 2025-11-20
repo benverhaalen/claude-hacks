@@ -11,6 +11,12 @@ const config: Config = {
       colors: {
         background: 'var(--background)',
         foreground: 'var(--foreground)',
+        primary: '#C5050C', // UW Red
+        secondary: '#9B0000', // Dark Red
+      },
+      fontFamily: {
+        sans: ['DM Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
       },
     },
   },

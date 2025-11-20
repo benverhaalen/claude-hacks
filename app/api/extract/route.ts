@@ -221,12 +221,16 @@ Use the tools provided to extract and structure this information.`;
       });
     }
 
+    // Detect deadline clustering (multiple deadlines within 3 days)
+    const clusters = detectDeadlineClusters(events);
+
     // Return structured events
     return NextResponse.json({
       success: true,
       extraction_method: extractionMethod,
       semester: semesterInfo,
       events,
+      clusters,
       raw_response: {
         model: response.model,
         usage: response.usage,
@@ -244,6 +248,68 @@ Use the tools provided to extract and structure this information.`;
       { status: 500 }
     );
   }
+}
+
+// Helper function to detect deadline clustering
+function detectDeadlineClusters(events: Event[]): Array<{
+  start_date: string;
+  end_date: string;
+  event_count: number;
+  events: string[];
+}> {
+  const clusters: Array<{
+    start_date: string;
+    end_date: string;
+    event_count: number;
+    events: string[];
+  }> = [];
+
+  // Sort events by date
+  const sortedEvents = [...events].sort((a, b) =>
+    new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+
+  // Look for clusters of 2+ events within 3 days
+  for (let i = 0; i < sortedEvents.length; i++) {
+    const currentEvent = sortedEvents[i];
+    const currentDate = new Date(currentEvent.date);
+    const clusterEvents: Event[] = [currentEvent];
+
+    // Check next events for clustering
+    for (let j = i + 1; j < sortedEvents.length; j++) {
+      const nextEvent = sortedEvents[j];
+      const nextDate = new Date(nextEvent.date);
+      const daysDiff = Math.floor((nextDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (daysDiff <= 3) {
+        clusterEvents.push(nextEvent);
+      } else {
+        break;
+      }
+    }
+
+    // If we found 2+ events within 3 days, it's a cluster
+    if (clusterEvents.length >= 2) {
+      const startDate = clusterEvents[0].date;
+      const endDate = clusterEvents[clusterEvents.length - 1].date;
+
+      // Check if this cluster overlaps with an existing one
+      const overlapping = clusters.find(
+        c => c.start_date === startDate && c.end_date === endDate
+      );
+
+      if (!overlapping) {
+        clusters.push({
+          start_date: startDate,
+          end_date: endDate,
+          event_count: clusterEvents.length,
+          events: clusterEvents.map(e => `${e.event_name} (${e.date})`),
+        });
+      }
+    }
+  }
+
+  return clusters;
 }
 
 // Helper function to determine semester info
