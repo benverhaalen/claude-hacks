@@ -1,0 +1,8 @@
+{
+  "description": "Sample syllabus for testing the extraction API",
+  "request": {
+    "text": "CS 540 - Artificial Intelligence\nFall 2024\n\nCourse Schedule:\nWeek 1 (Sept 3): Introduction to AI\nWeek 5 (Oct 1): Midterm Exam\nWeek 10 (Nov 5): Final Project due at 11:59 PM\nWeek 15 (Dec 10): Final Exam\n\nAssignments:\n- Homework 1: Due September 15 at 11:59 PM\n- Homework 2: Due October 20\n- Quiz 1: September 22 in class\n- Final Paper: Due December 5"
+  },
+  "expected_events": 7,
+  "test_command": "curl -X POST http://localhost:3000/api/extract -H 'Content-Type: application/json' -d @test-sample-syllabus.json"
+}
